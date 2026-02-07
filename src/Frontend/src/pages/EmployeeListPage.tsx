@@ -6,6 +6,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
   styled,
   tableCellClasses,
@@ -29,11 +30,22 @@ interface EmployeeListQuery {
 
 export default function EmployeeListPage() {
     const [list, setList] = useState<EmployeeListQuery[]>([])
-    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [isLoading, setIsLoading] = useState(true)
+    const [firstName, setFirstName] = useState<string>("")
+    const [lastName, setLastName] = useState<string>("")
+
 
     useEffect(()=>{
-      setIsLoading(true)
-      fetch("/api/employees/list")
+      const params = new URLSearchParams()
+
+      if(firstName){
+        params.append("FirstName", firstName);
+      }
+
+      if(lastName){
+        params.append("LastName", lastName);
+      }
+      fetch(`/api/employees/list?${params.toString()}`)
         .then((response)=>{
             return response.json()
         })
@@ -43,7 +55,7 @@ export default function EmployeeListPage() {
         .finally(()=>{
           setIsLoading(false)
         })
-    },[])
+    },[firstName, lastName])
 
 
   if (isLoading) {
@@ -54,8 +66,36 @@ export default function EmployeeListPage() {
     );
   }
 
+  const renderFilters= () =>{
+    return(
+      <Paper sx={{ p: 2, mb: 3, mt: 2 }}>
+      <TableRow sx={{ display: "flex", gap: 2 }}>
+        <TableCell sx={{ flex: 1, borderBottom: "none" }}>
+          <TextField
+            fullWidth
+            label="First name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+        </TableCell>
+
+        <TableCell sx={{ flex: 1, borderBottom: "none" }}>
+          <TextField
+            fullWidth
+            label="Last name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </TableCell>
+      </TableRow>
+    </Paper>
+    )
+  }
+
   return (
     <>
+      {renderFilters()}
+
       <Typography variant="h4" sx={{ textAlign: "center", mt: 4, mb: 4 }}>
         Employees
       </Typography>
