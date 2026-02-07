@@ -29,7 +29,6 @@ export default function SupplierListPage() {
         return response.json();
       })
       .then((data) => {
-        console.log('SupplierListPage: ',data)
         setList(data as SupplierListQuery[]);
       });
   }, []);

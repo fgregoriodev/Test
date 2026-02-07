@@ -13,6 +13,7 @@ import {
   tableCellClasses,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { downloadXml } from "../utils/filedownload";
 
 
 interface EmployeeListQuery {
@@ -92,18 +93,6 @@ export default function EmployeeListPage() {
         .join("")}
     </Employees>`
     .trim();
-  }
-
-  function downloadXml(xml:string, filename:string){
-    const blob = new Blob([xml], {type: "application/xml"});
-    const url = URL.createObjectURL(blob)
-
-    const a = document.createElement("a")
-    a.href = url;
-    a.download = filename;
-    a.click();
-
-    URL.revokeObjectURL(url)
   }
 
   const handleExport = () => {
