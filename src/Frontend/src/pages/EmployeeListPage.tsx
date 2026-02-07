@@ -1,4 +1,5 @@
 import {
+  Button,
   Paper,
   Table,
   TableBody,
@@ -66,8 +67,52 @@ export default function EmployeeListPage() {
     );
   }
 
-  const renderFilters= () =>{
-    return(
+
+  function employeesToXml(employees: EmployeeListQuery[]):string {
+    const escape = (value:string) => 
+      value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+
+    return `
+    <Employees>
+    ${employees
+      .map((e)=>`
+      <Employee>
+        <Id>${e.id}</Id>
+        <Code>${escape(e.code)}</Code>
+        <FirstName>${escape(e.firstName)}</FirstName>
+        <LastName>${escape(e.lastName)}</LastName>
+        <Email>${escape(e.email)}</Email>
+        <Phone>${escape(e.phone)}</Phone>
+        <Address>${escape(e.address)}</Address>
+        <Department>
+          <Code>${escape(e.department?.code ?? "")}</Code>
+          <Description>${escape(e.department?.description ?? "")}</Description>
+        </Department>
+      </Employee>`)
+        .join("")}
+    </Employees>`
+    .trim();
+  }
+
+  function downloadXml(xml:string, filename:string){
+    const blob = new Blob([xml], {type: "application/xml"});
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement("a")
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url)
+  }
+
+  const handleExport = () => {
+    const xml = employeesToXml(list);
+    downloadXml(xml, "employees.xml");
+  };
+
+  
+  const filters = (
       <Paper sx={{ p: 2, mb: 3, mt: 2 }}>
       <TableRow sx={{ display: "flex", gap: 2 }}>
         <TableCell sx={{ flex: 1, borderBottom: "none" }}>
@@ -89,12 +134,15 @@ export default function EmployeeListPage() {
         </TableCell>
       </TableRow>
     </Paper>
-    )
-  }
+  )
 
   return (
     <>
-      {renderFilters()}
+      {filters}
+
+      <Button variant="contained" onClick={handleExport}>
+        Export XML
+      </Button>
 
       <Typography variant="h4" sx={{ textAlign: "center", mt: 4, mb: 4 }}>
         Employees
