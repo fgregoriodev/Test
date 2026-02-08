@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Paper,
   Table,
@@ -38,41 +39,40 @@ export default function EmployeeListPage() {
       
     return(
       <Paper sx={{ p: 2, mb: 3, mt: 2 }}>
-        <TableRow sx={{ display: "flex", gap: 2 }}>
-          <TableCell sx={{ flex: 1, borderBottom: "none" }}>
-            <TextField
-              disabled={isLoading || isFetching}
-              fullWidth
-              label="First name"
-              value={firstNameInput}
-              onChange={(e) => setFirstNameInput(e.target.value)}
-            />
-          </TableCell>
-
-          <TableCell sx={{ flex: 1, borderBottom: "none" }}>
-            <TextField
-              disabled={isLoading || isFetching}
-              fullWidth
-              label="Last name"
-              value={lastNameInput}
-              onChange={(e) => setLastNameInput(e.target.value)}
-            />
-          </TableCell>
-          <TableCell>
-            <Button
-              disabled={isSearchDisabled }
-              variant="contained"
-              onClick={() =>
-                setFilters({
-                  firstName: firstNameInput.trim(),
-                  lastName: lastNameInput.trim(),
-                })
-              }
-            >
-              Search
-            </Button>
-          </TableCell>
-          <TableCell>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            alignItems: "center",
+            flexWrap: "nowrap",
+          }}
+        >
+          <TextField
+            disabled={isLoading || isFetching}
+            fullWidth
+            label="First name"
+            value={firstNameInput}
+            onChange={(e) => setFirstNameInput(e.target.value)}
+          />
+          <TextField
+            disabled={isLoading || isFetching}
+            fullWidth
+            label="Last name"
+            value={lastNameInput}
+            onChange={(e) => setLastNameInput(e.target.value)}
+          />
+          <Button
+            disabled={isSearchDisabled }
+            variant="contained"
+            onClick={() =>
+              setFilters({
+                firstName: firstNameInput.trim(),
+                lastName: lastNameInput.trim(),
+              })
+            }
+          >
+            Search
+          </Button>
           <Button
             variant="outlined"
             disabled={isResetDisabled  }
@@ -84,8 +84,7 @@ export default function EmployeeListPage() {
           >
             Reset
           </Button>
-          </TableCell>
-        </TableRow>
+        </Box>
       </Paper>
   )}
 
