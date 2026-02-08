@@ -15,7 +15,7 @@ import {
 import {  useState } from "react";
 import { downloadXml, employeesToXml } from "../utils/employeeXml";
 import { EmployeeFilters } from "../models/employee";
-import { useEmployees } from "../hooks/useEmploye";
+import { useEmployees } from "../hooks/useEmployees";
 
 export default function EmployeeListPage() {
   const [firstNameInput, setFirstNameInput] = useState<string>("")
@@ -24,7 +24,7 @@ export default function EmployeeListPage() {
     firstName: "",
     lastName: "",
   });
-  const { employees, isLoading, error,} = useEmployees(filters);
+  const { employees, isLoading, isFetching, error} = useEmployees(filters);
 
 
   const handleExport = () => {
@@ -41,6 +41,7 @@ export default function EmployeeListPage() {
         <TableRow sx={{ display: "flex", gap: 2 }}>
           <TableCell sx={{ flex: 1, borderBottom: "none" }}>
             <TextField
+              disabled={isLoading || isFetching}
               fullWidth
               label="First name"
               value={firstNameInput}
@@ -50,6 +51,7 @@ export default function EmployeeListPage() {
 
           <TableCell sx={{ flex: 1, borderBottom: "none" }}>
             <TextField
+              disabled={isLoading || isFetching}
               fullWidth
               label="Last name"
               value={lastNameInput}
@@ -62,8 +64,8 @@ export default function EmployeeListPage() {
               variant="contained"
               onClick={() =>
                 setFilters({
-                  firstName: firstNameInput,
-                  lastName: lastNameInput,
+                  firstName: firstNameInput.trim(),
+                  lastName: lastNameInput.trim(),
                 })
               }
             >
@@ -95,37 +97,21 @@ export default function EmployeeListPage() {
     );
   }
 
-
-  if (error) {
-    return (
-      <Typography color="error" sx={{ mt: 4, textAlign: "center" }}>
-        {error}
-      </Typography>
-    );
-  }
-
-
-
-  if (employees.length === 0) {
-    const hasActiveFilters = filters.firstName !== "" || filters.lastName !== "";
-    return (
-      <>
-        {renderFilters()}
-
-        <Typography
-          sx={{ mt: 4, textAlign: "center", color: "text.secondary" }}
-        >
-          {hasActiveFilters
-            ? "No employees found with the selected filters."
-            : "No employees available."}
-        </Typography>
-      </>
-    );
-  }
+  const hasActiveFilters = filters.firstName !== "" || filters.lastName !== "";
+  const isExportDisabled = isLoading || isFetching || error !== null || employees.length === 0;
 
   return (
     <>
       {renderFilters()}
+
+      {isFetching && (
+        <Typography
+          variant="body2"
+          sx={{ mb: 2, color: "text.secondary", textAlign: "right" }}
+        >
+          Updating results...
+        </Typography>
+      )}
 
       {(filters.firstName || filters.lastName) && (
         <Typography
@@ -137,7 +123,8 @@ export default function EmployeeListPage() {
           {filters.lastName && ` Last name = "${filters.lastName}"`}
         </Typography>
       )}
-      <Button variant="contained" onClick={handleExport}>
+
+      <Button disabled={isExportDisabled} variant="contained" onClick={handleExport}>
         Export XML
       </Button>
 
@@ -157,18 +144,37 @@ export default function EmployeeListPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {employees.map((row) => (
-              <TableRow
-                key={row.id}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell>{row.firstName} {row.lastName}</TableCell>
-                <TableCell>{row.address}</TableCell>
-                <TableCell>{row.email}</TableCell>
-                <TableCell>{row.phone}</TableCell>
-                <TableCell>{row.department?.description ?? "-"}</TableCell>
+            {error ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  <Typography color="error">
+                    {error}
+                  </Typography>
+                </TableCell>
               </TableRow>
-            ))}
+            ) :employees.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  <Typography
+                    sx={{ mt: 4, textAlign: "center", color: "text.secondary" }}
+                  >
+                    {hasActiveFilters
+                      ? "No employees found with the selected filters."
+                      : "No employees available."}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              employees.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.firstName} {row.lastName}</TableCell>
+                  <TableCell>{row.address}</TableCell>
+                  <TableCell>{row.email}</TableCell>
+                  <TableCell>{row.phone}</TableCell>
+                  <TableCell>{row.department?.description ?? "-"}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

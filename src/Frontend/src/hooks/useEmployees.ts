@@ -6,8 +6,12 @@ export function useEmployees(filters: EmployeeFilters) {
   const [employees, setEmployees] = useState<EmployeeApiResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
+    if(!isLoading) {
+      setIsFetching(true);
+    }
     setError(null);
 
     const params = new URLSearchParams();
@@ -20,9 +24,16 @@ export function useEmployees(filters: EmployeeFilters) {
         return res.json();
       })
       .then((data)=>setEmployees(data))
-      .catch(() => setError("Unable to load employees"))
-      .finally(() => setIsLoading(false));
+      .catch(() => {
+        setError("Unable to load employees")
+        setIsLoading(false);
+        setIsFetching(false);
+      })
+      .finally(() => {
+        setIsLoading(false);
+        setIsFetching(false);
+      });
   }, [filters]);
 
-  return { employees, isLoading, error };
+  return { employees, isLoading, isFetching,error };
 }
