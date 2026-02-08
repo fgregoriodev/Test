@@ -13,31 +13,12 @@ import {
   tableCellClasses,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { downloadXml } from "../utils/filedownload";
-
-
-interface EmployeeListQuery {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: string;
-  code: string;
-  department: {
-    code: string;
-    description: string;
-  } | null;
-}
-
-interface EmployeeFilters {
-  firstName: string;
-  lastName: string;
-}
+import { downloadXml, employeesToXml } from "../utils/employeeXml";
+import { EmployeeApiResponse, EmployeeFilters } from "../models/employee";
 
 
 export default function EmployeeListPage() {
-    const [list, setList] = useState<EmployeeListQuery[]>([])
+    const [list, setList] = useState<EmployeeApiResponse[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null);
     const [firstNameInput, setFirstNameInput] = useState<string>("")
@@ -82,34 +63,6 @@ export default function EmployeeListPage() {
           })
     },[filters])
 
-
-
-  function employeesToXml(employees: EmployeeListQuery[]):string {
-    // Escape XML entities
-    const escape = (value:string) => 
-      value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-
-    return `
-    <Employees>
-    ${employees
-      .map((e)=>`
-      <Employee>
-        <Id>${e.id}</Id>
-        <Code>${escape(e.code)}</Code>
-        <FirstName>${escape(e.firstName)}</FirstName>
-        <LastName>${escape(e.lastName)}</LastName>
-        <Email>${escape(e.email)}</Email>
-        <Phone>${escape(e.phone)}</Phone>
-        <Address>${escape(e.address)}</Address>
-        <Department>
-          <Code>${escape(e.department?.code ?? "")}</Code>
-          <Description>${escape(e.department?.description ?? "")}</Description>
-        </Department>
-      </Employee>`)
-        .join("")}
-    </Employees>`
-    .trim();
-  }
 
   const handleExport = () => {
     const xml = employeesToXml(list);
