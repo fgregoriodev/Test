@@ -9,9 +9,7 @@ export function useEmployees(filters: EmployeeFilters) {
   const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
-    if(!isLoading) {
-      setIsFetching(true);
-    }
+    setIsFetching(true);
     setError(null);
 
     const params = new URLSearchParams();
@@ -26,8 +24,6 @@ export function useEmployees(filters: EmployeeFilters) {
       .then((data)=>setEmployees(data))
       .catch(() => {
         setError("Unable to load employees")
-        setIsLoading(false);
-        setIsFetching(false);
       })
       .finally(() => {
         setIsLoading(false);
