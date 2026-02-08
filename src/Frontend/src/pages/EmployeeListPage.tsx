@@ -33,6 +33,7 @@ interface EmployeeListQuery {
 export default function EmployeeListPage() {
     const [list, setList] = useState<EmployeeListQuery[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null);
     const [firstName, setFirstName] = useState<string>("")
     const [lastName, setLastName] = useState<string>("")
 
@@ -49,24 +50,22 @@ export default function EmployeeListPage() {
       }
       fetch(`/api/employees/list?${params.toString()}`)
         .then((response)=>{
+          if (!response.ok) {
+            throw new Error("API error");
+          }
             return response.json()
         })
         .then((data)=>{
             setList(data)
+        })
+        .catch(() => {
+          setError("Unable to load employees")
         })
         .finally(()=>{
           setIsLoading(false)
         })
     },[firstName, lastName])
 
-
-  if (isLoading) {
-    return (
-      <Typography sx={{ textAlign: "center", mt: 4 }}>
-        Loading...
-      </Typography>
-    );
-  }
 
 
   function employeesToXml(employees: EmployeeListQuery[]):string {
@@ -124,6 +123,23 @@ export default function EmployeeListPage() {
       </TableRow>
     </Paper>
   )
+
+    if (isLoading) {
+    return (
+      <Typography sx={{ textAlign: "center", mt: 4 }}>
+        Loading...
+      </Typography>
+    );
+  }
+
+
+  if (error) {
+    return (
+      <Typography color="error" sx={{ mt: 4, textAlign: "center" }}>
+        {error}
+      </Typography>
+    );
+  }
 
   return (
     <>
