@@ -30,45 +30,62 @@ interface EmployeeListQuery {
   } | null;
 }
 
+interface EmployeeFilters {
+  firstName: string;
+  lastName: string;
+}
+
+
 export default function EmployeeListPage() {
     const [list, setList] = useState<EmployeeListQuery[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null);
-    const [firstName, setFirstName] = useState<string>("")
-    const [lastName, setLastName] = useState<string>("")
+    const [firstNameInput, setFirstNameInput] = useState<string>("")
+    const [lastNameInput, setLastNameInput] = useState<string>("")
+    const [filters, setFilters] = useState<EmployeeFilters>({
+      firstName: "",
+      lastName: "",
+    });
+
 
 
     useEffect(()=>{
-      const params = new URLSearchParams()
+      
+        setError(null);
+        const params = new URLSearchParams()
 
-      if(firstName){
-        params.append("FirstName", firstName);
-      }
+        //Filter for firstname 
+        if(filters.firstName){
+          params.append("FirstName", filters.firstName);
+        }
 
-      if(lastName){
-        params.append("LastName", lastName);
-      }
-      fetch(`/api/employees/list?${params.toString()}`)
-        .then((response)=>{
-          if (!response.ok) {
-            throw new Error("API error");
-          }
-            return response.json()
-        })
-        .then((data)=>{
-            setList(data)
-        })
-        .catch(() => {
-          setError("Unable to load employees")
-        })
-        .finally(()=>{
-          setIsLoading(false)
-        })
-    },[firstName, lastName])
+        //Filter for lastName
+        if(filters.lastName){
+          params.append("LastName", filters.lastName);
+        }
+
+        fetch(`/api/employees/list?${params.toString()}`)
+          .then((response)=>{
+            if (!response.ok) {
+              throw new Error("API error");
+            }
+              return response.json()
+          })
+          .then((data)=>{
+              setList(data)
+          })
+          .catch(() => {
+            setError("Unable to load employees")
+          })
+          .finally(()=>{
+            setIsLoading(false);
+          })
+    },[filters])
 
 
 
   function employeesToXml(employees: EmployeeListQuery[]):string {
+    // Escape XML entities
     const escape = (value:string) => 
       value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
@@ -100,29 +117,60 @@ export default function EmployeeListPage() {
   };
 
   
-  const filters = (
+  const renderFilters = ()=> {
+    const isSearchDisabled = firstNameInput.trim() === "" && lastNameInput.trim() === "";
+    const isResetDisabled = firstNameInput === "" && lastNameInput === "" && filters.firstName === "" && filters.lastName === "";
+      
+    return(
       <Paper sx={{ p: 2, mb: 3, mt: 2 }}>
-      <TableRow sx={{ display: "flex", gap: 2 }}>
-        <TableCell sx={{ flex: 1, borderBottom: "none" }}>
-          <TextField
-            fullWidth
-            label="First name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-          />
-        </TableCell>
+        <TableRow sx={{ display: "flex", gap: 2 }}>
+          <TableCell sx={{ flex: 1, borderBottom: "none" }}>
+            <TextField
+              fullWidth
+              label="First name"
+              value={firstNameInput}
+              onChange={(e) => setFirstNameInput(e.target.value)}
+            />
+          </TableCell>
 
-        <TableCell sx={{ flex: 1, borderBottom: "none" }}>
-          <TextField
-            fullWidth
-            label="Last name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-          />
-        </TableCell>
-      </TableRow>
-    </Paper>
-  )
+          <TableCell sx={{ flex: 1, borderBottom: "none" }}>
+            <TextField
+              fullWidth
+              label="Last name"
+              value={lastNameInput}
+              onChange={(e) => setLastNameInput(e.target.value)}
+            />
+          </TableCell>
+          <TableCell>
+            <Button
+              disabled={isSearchDisabled }
+              variant="contained"
+              onClick={() =>
+                setFilters({
+                  firstName: firstNameInput,
+                  lastName: lastNameInput,
+                })
+              }
+            >
+              Search
+            </Button>
+          </TableCell>
+          <TableCell>
+          <Button
+            variant="outlined"
+            disabled={isResetDisabled  }
+            onClick={() => {
+              setFirstNameInput("");
+              setLastNameInput("");
+              setFilters({ firstName: "", lastName: "" });
+            }}
+          >
+            Reset
+          </Button>
+          </TableCell>
+        </TableRow>
+      </Paper>
+  )}
 
     if (isLoading) {
     return (
@@ -141,9 +189,28 @@ export default function EmployeeListPage() {
     );
   }
 
+
+
+  if (list.length === 0) {
+    const hasActiveFilters = filters.firstName !== "" || filters.lastName !== "";
+    return (
+      <>
+        {renderFilters()}
+
+        <Typography
+          sx={{ mt: 4, textAlign: "center", color: "text.secondary" }}
+        >
+          {hasActiveFilters
+            ? "No employees found with the selected filters."
+            : "No employees available."}
+        </Typography>
+      </>
+    );
+  }
+
   return (
     <>
-      {filters}
+      {renderFilters()}
 
       <Button variant="contained" onClick={handleExport}>
         Export XML
