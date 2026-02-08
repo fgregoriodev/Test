@@ -127,6 +127,16 @@ export default function EmployeeListPage() {
     <>
       {renderFilters()}
 
+      {(filters.firstName || filters.lastName) && (
+        <Typography
+          variant="body2"
+          sx={{ mb: 2, color: "text.secondary" }}
+        >
+          Active filters:
+          {filters.firstName && ` First name = "${filters.firstName}"`}
+          {filters.lastName && ` Last name = "${filters.lastName}"`}
+        </Typography>
+      )}
       <Button variant="contained" onClick={handleExport}>
         Export XML
       </Button>
