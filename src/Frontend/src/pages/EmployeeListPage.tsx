@@ -12,64 +12,26 @@ import {
   styled,
   tableCellClasses,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { downloadXml, employeesToXml } from "../utils/employeeXml";
-import { EmployeeApiResponse, EmployeeFilters } from "../models/employee";
-
+import { EmployeeFilters } from "../models/employee";
+import { useEmployees } from "../hooks/useEmploye";
 
 export default function EmployeeListPage() {
-    const [list, setList] = useState<EmployeeApiResponse[]>([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null);
-    const [firstNameInput, setFirstNameInput] = useState<string>("")
-    const [lastNameInput, setLastNameInput] = useState<string>("")
-    const [filters, setFilters] = useState<EmployeeFilters>({
-      firstName: "",
-      lastName: "",
-    });
-
-
-
-    useEffect(()=>{
-      
-        setError(null);
-        const params = new URLSearchParams()
-
-        //Filter for firstname 
-        if(filters.firstName){
-          params.append("FirstName", filters.firstName);
-        }
-
-        //Filter for lastName
-        if(filters.lastName){
-          params.append("LastName", filters.lastName);
-        }
-
-        fetch(`/api/employees/list?${params.toString()}`)
-          .then((response)=>{
-            if (!response.ok) {
-              throw new Error("API error");
-            }
-              return response.json()
-          })
-          .then((data)=>{
-              setList(data)
-          })
-          .catch(() => {
-            setError("Unable to load employees")
-          })
-          .finally(()=>{
-            setIsLoading(false);
-          })
-    },[filters])
+  const [firstNameInput, setFirstNameInput] = useState<string>("")
+  const [lastNameInput, setLastNameInput] = useState<string>("")
+  const [filters, setFilters] = useState<EmployeeFilters>({
+    firstName: "",
+    lastName: "",
+  });
+  const { employees, isLoading, error,} = useEmployees(filters);
 
 
   const handleExport = () => {
-    const xml = employeesToXml(list);
+    const xml = employeesToXml(employees);
     downloadXml(xml, "employees.xml");
   };
 
-  
   const renderFilters = ()=> {
     const isSearchDisabled = firstNameInput.trim() === "" && lastNameInput.trim() === "";
     const isResetDisabled = firstNameInput === "" && lastNameInput === "" && filters.firstName === "" && filters.lastName === "";
@@ -144,7 +106,7 @@ export default function EmployeeListPage() {
 
 
 
-  if (list.length === 0) {
+  if (employees.length === 0) {
     const hasActiveFilters = filters.firstName !== "" || filters.lastName !== "";
     return (
       <>
@@ -185,7 +147,7 @@ export default function EmployeeListPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {list.map((row) => (
+            {employees.map((row) => (
               <TableRow
                 key={row.id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
